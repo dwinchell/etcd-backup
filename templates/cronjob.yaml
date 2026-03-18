@@ -56,8 +56,8 @@ spec:
                 chroot /host bash -c "ls -dt /home/core/backup/* | tail -n +4 | xargs -r rm -rf || true";
 
                 echo "--- Save cluster ID ---"
-                CLUSTER_ID=$(oc get clusterversion version -o jsonpath='{.spec.clusterID}')
-                echo "${CLUSTER_ID}" > /host/home/core/backup/cluster_id
+                CLUSTER_ID=$(oc get clusterversion version -o jsonpath='{.spec.clusterID}');
+                echo "${CLUSTER_ID}" > /host/home/core/backup/cluster_id;
               securityContext:
                 privileged: true
                 runAsUser: 0
@@ -78,12 +78,12 @@ spec:
               - '-c'
               - |
                 echo "--- Read cluster ID ---"
-                CLUSTER_ID=$(cat /host/home/core/backup/cluster_id)
+                CLUSTER_ID=$(cat /host/home/core/backup/cluster_id);
 
                 echo "--- Syncing local backup folder to S3 ---";
-                S3_PATH="s3://ocp-etcd-sync/${CLUSTER_ID}/"
-                echo "S3 path: ${S3_PATH}"
-                echo "Retaining only recent backups";
+                S3_PATH="s3://ocp-etcd-sync/${CLUSTER_ID}/";
+                echo "S3 path: ${S3_PATH}";
+                echo "ENDPOINT_URL: ${ENDPOINT_URL}";
                 aws s3 sync /host/home/core/backup/ ${S3_PATH} \
                   --endpoint-url ${ENDPOINT_URL} \
                   --no-verify-ssl \
