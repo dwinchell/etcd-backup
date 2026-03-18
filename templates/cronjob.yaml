@@ -6,7 +6,7 @@ metadata:
   labels:
     app.kubernetes.io/name: cronjob-etcd-backup
 spec:
-  schedule: "* * * * *"
+  schedule: "0 2 * * *"
   concurrencyPolicy: Forbid
   suspend: false
   jobTemplate:
@@ -14,7 +14,7 @@ spec:
       labels:
         app.kubernetes.io/name: cronjob-etcd-backup
     spec:
-      backoffLimit: 0
+      backoffLimit: 2
       template:
         metadata:
           labels:
@@ -22,7 +22,7 @@ spec:
         spec:
           nodeSelector:
             node-role.kubernetes.io/master: ''
-          restartPolicy: Never
+          restartPolicy: OnFailure
           activeDeadlineSeconds: 500
           serviceAccountName: cronjob-etcd-bkp-sa
           hostPID: true
@@ -31,18 +31,21 @@ spec:
           schedulerName: default-scheduler
           terminationGracePeriodSeconds: 30
           securityContext: {}
-          containers:
+          # First step - take a backup and then clean up old local copies of backups
+          initContainers:
             - name: cronjob-etcd-backup
               image: registry.redhat.io/openshift4/ose-cli
               terminationMessagePath: /dev/termination-log
               command:
               - /bin/bash
               - '-c'
-              - >-
-                echo -e '\n\n---\nCreate etcd backup local to master\n' &&
-                chroot /host /usr/local/bin/cluster-backup.sh /home/core/backup/$(date "+%F_%H%M%S") &&
-                echo -e '\n\n---\nCleanup old local etcd backups\n' &&
-                chroot /host find /home/core/backup/ -mindepth 1 -type d -mmin +2 -exec rm -rf {} \;
+              - |
+                set -e;
+                echo "--- Create etcd backup local to master ---";
+                chroot /host /usr/local/bin/cluster-backup.sh /home/core/backup/$(date "+%F_%H%M%S");
+
+                echo "--- Keep only the 3 most recent backups ---";
+                chroot /host bash -c "ls -dt /home/core/backup/* | tail -n +4 | xargs -r rm -rf || true";
               securityContext:
                 privileged: true
                 runAsUser: 0
@@ -54,13 +57,19 @@ spec:
                 - name: host
                   mountPath: /host
               terminationMessagePolicy: File
+          # Second step - Sync the files to S3, retaining only the most recent backups
+          containers:
             - name: aws-cli
               image: amazon/aws-cli:latest
               command:
               - /bin/bash
               - '-c'
-              - >-
-                while true; do if [[  $(find /host/home/core/backup/ -type d -cmin -1) ]]; then aws s3 cp /host/home/core/backup/ s3://ocp-etcd-sync --endpoint-url ${ENDPOINT_URL} --no-verify-ssl --recursive; break; fi; done
+              - |
+                echo "--- Syncing local backup folder to S3, retaining only the most recent backups ---";
+                aws s3 sync /host/home/core/backup/ s3://ocp-etcd-sync \
+                  --endpoint-url ${ENDPOINT_URL} \
+                  --no-verify-ssl \
+                  --delete;
               env:
               - name: AWS_ACCESS_KEY_ID
                 valueFrom:

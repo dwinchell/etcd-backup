@@ -31,14 +31,16 @@ fi
 oc adm policy add-scc-to-user privileged -z ${SERVICE_ACCOUNT} -n ${NAMESPACE}
 
 # Create or update the secret with the S3 credentials
+set x # Do not echo passwords
 oc create secret generic aws-s3-etcd-key \
 	--from-literal=aws_access_key_id=${AWS_ACCESS_KEY_ID} \
 	--from-literal=aws_secret_access_key=${AWS_SECRET_ACCESS_KEY} \
 	--from-literal=endpoint_url=${ENDPOINT_URL} \
 	-n ${NAMESPACE} \
 	--dry-run=client -o yaml | oc apply -f -
+set -x
 
 # Install helm chart
-helm install ${HELM_RELEASE_NAME} .
+helm upgrade --install ${HELM_RELEASE_NAME} .
 
 echo "Done."
