@@ -1,6 +1,6 @@
 # Overview
 
-This repository automates the configuration of recurring etcd backups in OpenShift using GitOps.
+This automates the configuration of recurring etcd backups in OpenShift.
 
 # Attribution
 
@@ -17,6 +17,10 @@ This repository makes the following changes / enhancements, including:
 * Fixed some potential race conditions.
 * Updated the tolerations to make the CronJob work on some modern clusters.
 * Various fixes, optimizations and updates to take advantage of things available 1.5 years after the blog post.
+
+# Alternatives
+
+OpenShift has a *Technology Preview* feature for recurring backups of etcd. However, it is *not ready for production* use, per the documentation. In particular, it requires enabling the `TechPreviewNoUpgrade` feature flag, which prevents upgrading OpenShift and *cannot be disabled*. So, don't use that feature for production clusters until it is ready.
 
 # Prerequisites
 
@@ -41,6 +45,9 @@ To do this manually:
 
 1. Stop sharing your screen :)
 2. Run these commands, filling in your details
+
+Note: Ensure the ENDPOINT_URL includes the protocol, e.g. https://...
+
 ```
 export ENDPOINT_URL=<paste>
 export AWS_ACCESS_KEY_ID=<paste>
@@ -73,7 +80,7 @@ This will:
 * Check that the correct environment variables are set
 * Configure the ServiceAccount permissions to run privileged Pods
 * Create the Secret the old fashion way. You should configure Vaultwarden (or an equivalent) instead if you have time
-* Creates the GitOps Application to cause OpenShift GitOps to run the Helm chart and actually create the objects in OpenShift
+* Run the Helm chart to create the objects in OpenShift, including a CronJob and a ServiceAccount
 
 # Starting a backup now
 
@@ -102,4 +109,14 @@ Verify the contents of S3:
 ```
 aws s3 ls s3://ocp-etcd-sync/ --endpoint-url ${ENDPOINT_URL} --no-verify-ssl --recursive
 ```
+
+# Restoring a backup
+
+**WARNING:** This should be done only as a last resort! etcd restores are inherently risky. If you believe you need to do this, open a ticket with Red Hat Support.
+
+Follow the official Red Hat instructions for restoring an etcd backup, here:
+
+https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/etcd/backing-up-and-restoring-etcd-data#etcd-dr-restore
+
+They involve running a script called `cluster-restore.sh`.
 
