@@ -29,7 +29,7 @@ OpenShift has a *Technology Preview* feature for recurring backups of etcd. Howe
 
 1. The oc and helm binaries installed locally.
 2. (Optional) The aws binary installed locally for verifying backups were uploaded.
-2. An S3 provider, which can be AWS, or IBM Cloud Object Storage or an equivalent. A bucket will be created as part of the instructions.
+2. An S3 provider, which can be AWS or an equivalent. A bucket will be created as part of the instructions.
 
 # Install Instructions
 
@@ -37,8 +37,9 @@ OpenShift has a *Technology Preview* feature for recurring backups of etcd. Howe
 
 This procedure has multiple high level steps:
 
-1. Create the IBM Cloud Object Storage credentials in Vaultwarden
-2. Create the Application in ACM
+1. Set the S3 credential environment variables.
+2. Create an S3 bucket.
+3. Run the install script.
 
 ## Set the S3 credential environment variables
 
