@@ -10,7 +10,10 @@ https://developers.redhat.com/articles/2024/09/26/enable-etcd-backups-openshift-
 
 From that blog post came the overall idea for how to run the recurring backups, the implementation related to creating the etcd backups themselves, the CronJob, and the s3 client.
 
-This repository makes the following changes / enhancements, including:
+# Changes and Enhancements
+
+This repository makes some changes and enhancements compared to the original blog post, including:
+
 * Added a Helm chart to create the OpenShift objects
 * Added a shell script to bootstrap everything.
 * Changed the S3 command to work with a third party S3 equivalent by using and endpoint URL instead of an S3 region.
