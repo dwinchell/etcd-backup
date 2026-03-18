@@ -8,9 +8,9 @@ This work was largely based on this blog post by Saurabh Kumar Ghoshal on redhat
 
 https://developers.redhat.com/articles/2024/09/26/enable-etcd-backups-openshift-clusters-hybrid-cloud-environments
 
-From that blog post came the overall idea for how to run the recurring backups, the implementation related to creating the etcd backups themselves, the CronJob, and the s3 client. 
+From that blog post came the overall idea for how to run the recurring backups, the implementation related to creating the etcd backups themselves, the CronJob, and the s3 client.
 
-This repository adds Helm / GitOps / a shell script to bootstrap everything.
+This repository adds Helm / GitOps / a shell script to bootstrap everything. It also changes the s3 command to work with a third party S3 equivalent by using and endpoint URL instead of an S3 region.
 
 # Prerequisites
 

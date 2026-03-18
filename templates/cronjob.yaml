@@ -60,7 +60,7 @@ spec:
               - /bin/bash
               - '-c'
               - >-
-                while true; do if [[  $(find /host/home/core/backup/ -type d -cmin -1) ]]; then aws s3 cp /host/home/core/backup/ s3://ocp-etcd-sync --recursive; break; fi; done
+                while true; do if [[  $(find /host/home/core/backup/ -type d -cmin -1) ]]; then aws s3 cp /host/home/core/backup/ s3://ocp-etcd-sync --endpoint-url ${ENDPOINT_URL} --no-verify-ssl --recursive; break; fi; done
               env:
               - name: AWS_ACCESS_KEY_ID
                 valueFrom:
@@ -72,11 +72,11 @@ spec:
                   secretKeyRef:
                     name: aws-s3-etcd-key
                     key: aws_secret_access_key
-              - name: AWS_DEFAULT_REGION
+              - name: ENDPOINT_URL
                 valueFrom:
                   secretKeyRef:
                     name: aws-s3-etcd-key
-                    key: region
+                    key: endpoint_url
               volumeMounts:
                 - name: host
                   mountPath: /host

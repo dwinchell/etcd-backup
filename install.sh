@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-NAMESPACE=etcd-bkp
+source config.sh
 
 # Check that AWS environment variables are set
 REQUIRED_VARS=(AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY ENDPOINT_URL)
@@ -28,7 +28,7 @@ if ! oc get project "${NAMESPACE}" &> /dev/null; then
 fi
 
 # Allow the openshift-backup ServiceAccount to run privileged Pods
-oc adm policy add-scc-to-user privileged -z openshift-backup -n ${NAMESPACE}
+oc adm policy add-scc-to-user privileged -z ${SERVICE_ACCOUNT} -n ${NAMESPACE}
 
 # Create or update the secret with the S3 credentials
 oc create secret generic aws-s3-etcd-key \
@@ -37,5 +37,8 @@ oc create secret generic aws-s3-etcd-key \
 	--from-literal=endpoint_url=${ENDPOINT_URL} \
 	-n ${NAMESPACE} \
 	--dry-run=client -o yaml | oc apply -f -
+
+# Install helm chart
+helm install ${HELM_RELEASE_NAME} .
 
 echo "Done."
