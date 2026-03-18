@@ -1,0 +1,4 @@
+apiVersion: v2
+name: Etcd Backup
+version: 0.1
+description: Configures recurring backups of etcd in OpenShift.
